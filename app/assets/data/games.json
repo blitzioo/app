@@ -1,14 +1,26 @@
 [
-    {
-        "id": "ninety-seven",
-        "title": "Le 97",
-        "description": "Le jeu de geudin. Attention à ne pas dépasser 97.",
-        "image": "/images/games/ninety-seven/cover.png"
-    },
-    {
-        "id": "balloon",
-        "title": "Ballon2Zipette",
-        "description": "Gonfle ou passe le ballon, attention à ne pas le faire exploser sinon c'est cuit.",
-        "image": "/images/games/balloon/cover.png"
-    }
+  {
+    "id": "ninety-seven",
+    "title": "Le 97",
+    "description": "Le jeu de geudin. Attention à ne pas dépasser 97.",
+    "icon": "i-material-symbols-playing-cards-outline-rounded",
+    "backgroundColor": "#EAF4FF",
+    "color": "#1475E1"
+  },
+  {
+    "id": "balloon",
+    "title": "Ballon2Zipette",
+    "description": "Gonfle ou passe le ballon, attention à ne pas le faire exploser sinon c'est cuit.",
+    "icon": "i-solar-balloon-bold",
+    "backgroundColor": "#FFF0F0",
+    "color": "#ED4163"
+  },
+  {
+    "id": "pmu",
+    "title": "PMU",
+    "description": "Parie sur une couleur et regarde les chevaux galoper. Le perdant trinque.",
+    "icon": "i-mdi-horse",
+    "backgroundColor": "#FFF9E6",
+    "color": "#D99000"
+  }
 ]

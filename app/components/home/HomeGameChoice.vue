@@ -48,13 +48,17 @@
             @click="onGameClick(game)"
           >
             <div
-              v-if="game.image"  
-              class="grid h-20 w-20 shrink-0 place-items-center rounded-[24px] border border-white/10 bg-neutral-950/50"
+              class="grid h-20 w-20 shrink-0 place-items-center rounded-[24px] border border-white/10 transition"
+              :style="{
+                backgroundColor: game.backgroundColor ?? 'rgba(7, 24, 36, 0.5)'
+              }"
             >
-              <img
-                :src="game.image"
-                :alt="game.id"
-                class="h-14 w-14 object-contain drop-shadow-xl transition"
+              <UIcon
+                :name="game.icon ?? 'i-lucide-gamepad-2'"
+                class="h-11 w-11 transition group-hover:scale-110"
+                :style="{
+                  color: game.color ?? 'var(--color-primary-300)'
+                }"
               />
             </div>
 
@@ -77,91 +81,12 @@
               </p>
             </div>
 
-            <UIcon
+            <!-- <UIcon
               name="i-lucide-chevron-right"
               class="h-6 w-6 shrink-0 text-neutral-500 transition group-hover:translate-x-1 group-hover:text-primary-300"
-            />
+            /> -->
           </button>
         </div>
-      </div>
-    </template>
-  </UDrawer>
-
-  <UDrawer
-    v-model:open="isOptionsDrawerOpen"
-    :handle="false"
-    :ui="{
-      overlay: 'bg-neutral-950/70',
-      content: 'bg-transparent ring-0'
-    }"
-  >
-    <template #content>
-      <div
-        class="w-full rounded-t-[36px] border-t border-white/10 bg-neutral-950 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl"
-      >
-        <div class="flex items-center gap-3">
-          <UButton
-            color="neutral"
-            variant="ghost"
-            icon="i-lucide-arrow-left"
-            class="h-11 w-11 rounded-full text-neutral-300 hover:bg-white/10 hover:text-white"
-            @click="backToGameList"
-          />
-
-          <h2 class="text-2xl font-black text-white">
-            {{ t('home.games.pmu.options.title') }}
-          </h2>
-        </div>
-
-        <div class="mt-7 rounded-[28px] border border-white/10 bg-neutral-800/90 p-5">
-          <p class="text-sm font-bold text-neutral-300">
-            {{ t('home.games.pmu.options.stepLabel') }}
-          </p>
-
-          <div class="mt-4 flex items-center justify-between gap-4">
-            <UButton
-              color="neutral"
-              variant="soft"
-              icon="i-lucide-minus"
-              size="xl"
-              class="h-14 w-14 rounded-2xl"
-              :disabled="stepNumber <= PMU_STEP_MIN"
-              @click="stepNumber = Math.max(PMU_STEP_MIN, stepNumber - 1)"
-            />
-
-            <span class="min-w-16 text-center text-4xl font-black text-white tabular-nums">
-              {{ stepNumber }}
-            </span>
-
-            <UButton
-              color="neutral"
-              variant="soft"
-              icon="i-lucide-plus"
-              size="xl"
-              class="h-14 w-14 rounded-2xl"
-              :disabled="stepNumber >= PMU_STEP_MAX"
-              @click="stepNumber = Math.min(PMU_STEP_MAX, stepNumber + 1)"
-            />
-          </div>
-
-          <p class="mt-3 text-center text-xs font-medium text-neutral-500">
-            {{ t('home.games.pmu.options.stepHint', { min: PMU_STEP_MIN, max: PMU_STEP_MAX }) }}
-          </p>
-        </div>
-
-        <UButton
-          type="button"
-          block
-          size="xl"
-          color="primary"
-          icon="i-lucide-check"
-          :disabled="isBusy || !pendingGame"
-          :class="pendingGame && loadingGameId === pendingGame.id ? 'pointer-events-none opacity-60' : ''"
-          class="mt-6 h-14 rounded-2xl font-black text-white"
-          @click="confirmPmuCreate"
-        >
-          {{ t('home.games.pmu.options.confirm') }}
-        </UButton>
       </div>
     </template>
   </UDrawer>
@@ -183,16 +108,16 @@ const toast = useToast()
 type GameCard = {
   id: GameEnum
   title: string;
+  icon: string;
+  
+  backgroundColor: string;
+  color: string;
+
   description: string;
-  image?: string
-  disabled?: boolean
-  configurable?: boolean
+  disabled?: boolean;
 }
 
 const games = gamesFile as GameCard[];
-const PMU_STEP_MIN = 3
-const PMU_STEP_MAX = 12
-const PMU_STEP_DEFAULT = 6
 
 const emit = defineEmits<{
   onGameId: [gameId: GameEnum | null]
@@ -208,43 +133,16 @@ const loadingGameId = ref<GameEnum | null>(null)
 const isCreateDrawerOpen = ref(false)
 const isOptionsDrawerOpen = ref(false)
 const pendingGame = ref<GameCard | null>(null)
-const stepNumber = ref(PMU_STEP_DEFAULT)
 
 const onGameClick = (game: GameCard) => {
   if (isBusy.value || game.disabled) {
     return
   }
-
-  if (game.configurable) {
-    pendingGame.value = game
-    stepNumber.value = PMU_STEP_DEFAULT
-    isCreateDrawerOpen.value = false
-    isOptionsDrawerOpen.value = true
-    return
-  }
-
   createGameRoom(game.id)
 }
 
-const backToGameList = () => {
-  isOptionsDrawerOpen.value = false
-  pendingGame.value = null
-  isCreateDrawerOpen.value = true
-}
-
-const confirmPmuCreate = () => {
-  if (!pendingGame.value) {
-    return
-  }
-
-  createGameRoom(pendingGame.value.id, {
-    stepNumber: stepNumber.value
-  })
-}
-
 const createGameRoom = async (
-  gameId: GameEnum,
-  options?: Record<string, unknown>
+  gameId: GameEnum
 ) => {
   if (isBusy.value) {
     return
@@ -254,7 +152,7 @@ const createGameRoom = async (
     loadingGameId.value = gameId
     emit('onGameId', gameId)
 
-    const room = await createRoom(gameId, options)
+    const room = await createRoom(gameId)
 
     isCreateDrawerOpen.value = false
     isOptionsDrawerOpen.value = false
