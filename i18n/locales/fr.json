@@ -34,6 +34,26 @@
       "roomCreate": {
         "common": "Impossible de créer la salle."
       }
+    },
+    "games": {
+      "ninetySeven": {
+        "title": "Le 97",
+        "description": "Le jeu de geudin où faut savoir calculer. Attention à ne pas dépasser 97."
+      },
+      "pmu": {
+        "title": "PMU",
+        "description": "Parie sur une couleur et regarde les chevaux galoper. Le perdant trinque.",
+        "options": {
+          "title": "Configurer le PMU",
+          "stepLabel": "Nombre d'étapes de la course",
+          "stepHint": "Entre {min} et {max}. Plus il y en a, plus la course est longue.",
+          "confirm": "Créer la salle"
+        }
+      },
+      "spotRush": {
+        "title": "Dobble hess",
+        "description": "Comme le dobble, faut trouver les différences le plus vite possible."
+      }
     }
   },
   "room": {
@@ -64,6 +84,32 @@
         "description": "En vrai tu vas casser les couilles parce que les autres pourrons plus jouer",
         "cancelBtn": "Annuler",
         "confirmBtn": "Quitter"
+      }
+    },
+    "pmu": {
+      "track": {
+        "lastCard": "Carte retournée",
+        "gorgees": "{count} gorgées"
+      },
+      "bet": {
+        "title": "Sur quel cheval tu paries ?",
+        "locked": "Paris fermés, la course est lancée",
+        "miseLabel": "Gorgées misées",
+        "confirm": "Parier {count} gorgées",
+        "confirmed": "Pari validé ({count} gorgées)"
+      },
+      "controls": {
+        "start": "Lancer la course",
+        "next": "Carte suivante",
+        "racing": "La course est en cours…",
+        "waitingHost": "En attente de l'hôte pour lancer"
+      },
+      "end": {
+        "title": "Terminé !",
+        "winner": "Cheval gagnant",
+        "distributes": "distribue {count} gorgées",
+        "drinks": "boit {count} gorgées",
+        "backToHome": "Retour à l'accueil"
       }
     },
     "ninetySeventy": {

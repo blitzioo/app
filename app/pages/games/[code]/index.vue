@@ -95,12 +95,19 @@
 import type { Component } from 'vue'
 import BalloonGame from '~/components/games/balloon/BalloonGame.vue'
 import NinetySevenGame from '~/components/games/ninety-seven/NinetySevenGame.vue'
+import PmuGame from '~/components/games/pmu/PmuGame.vue'
 import { useSocket } from '~/composables/core/useSocket'
 import { GameEnum, type GameData } from '~/types/games'
 
+<<<<<<< HEAD
 const gameComponents: Record<GameEnum, Component> = {
   [GameEnum.NINETY_SEVEN]: NinetySevenGame,
   [GameEnum.BALLOON]: BalloonGame
+=======
+const gameComponents: Partial<Record<GameEnum, Component>> = {
+  [GameEnum.NINETY_SEVEN]: NinetySevenGame,
+  [GameEnum.PMU]: PmuGame
+>>>>>>> 81da8caeb6140c76f36866e1378c40e1f99945d5
 }
 
 const {t} = useI18n()

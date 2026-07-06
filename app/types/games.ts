@@ -1,7 +1,7 @@
 export enum GameEnum {
     NINETY_SEVEN = "ninety-seven",
     BALLOON = "balloon",
-    // PMU = "PMU",
+    PMU = "pmu",
 }
 
 export type GameSessionPlayer = {
