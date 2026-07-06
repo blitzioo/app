@@ -146,51 +146,53 @@ const pips = computed(() => pipLayouts[props.rank] ?? [])
 <template>
   <div
     class="playing-card"
-    :class="[sizeClass, { selected }]"
+    :class="[sizeClass, { selected, 'is-face-down': faceDown }]"
     :style="{ '--suit-color': suitData.color }"
   >
-    <div v-if="faceDown" class="card-back">
-      <div class="back-pattern" />
-      <div class="back-center">
-        <div class="back-logo">
-          <UIcon
-            name="i-mdi-cards-playing-outline"
-            class="size-20 text-neutral-100"
-          />
+    <div class="card-inner">
+      <div class="card-face card-front">
+        <div class="corner corner-top">
+          <span class="corner-rank">{{ rank }}</span>
+          <span class="corner-suit">{{ suitData.symbol }}</span>
+        </div>
+
+        <div class="corner corner-bottom">
+          <span class="corner-rank">{{ rank }}</span>
+          <span class="corner-suit">{{ suitData.symbol }}</span>
+        </div>
+
+        <div v-if="isFigure" class="figure">
+          <div class="figure-card">
+            <span class="figure-rank">{{ rank }}</span>
+          </div>
+        </div>
+
+        <div v-else class="pip-zone">
+          <span
+            v-for="(pip, index) in pips"
+            :key="index"
+            class="pip"
+            :style="{
+              left: `${pip.x}%`,
+              top: `${pip.y}%`,
+              transform: `translate(-50%, -50%) rotate(${pip.rotate ?? 0}deg) scale(${pip.scale ?? 1})`
+            }"
+          >
+            {{ suitData.symbol }}
+          </span>
         </div>
       </div>
-    </div>
 
-    <div v-else class="card-front">
-      <div class="corner corner-top">
-        <span class="corner-rank">{{ rank }}</span>
-        <span class="corner-suit">{{ suitData.symbol }}</span>
-      </div>
+      <div class="card-face card-back">
+        <div class="back-pattern" />
 
-      <div class="corner corner-bottom">
-        <span class="corner-rank">{{ rank }}</span>
-        <span class="corner-suit">{{ suitData.symbol }}</span>
-      </div>
-
-      <div v-if="isFigure" class="figure">
-        <div class="figure-card">
-          <span class="figure-rank">{{ rank }}</span>
+        <div class="back-center">
+          <img
+            src="/images/logo/card-cover-logo.png"
+            alt="Card cover"
+            class="back-logo-image"
+          >
         </div>
-      </div>
-
-      <div v-else class="pip-zone">
-        <span
-          v-for="(pip, index) in pips"
-          :key="index"
-          class="pip"
-          :style="{
-            left: `${pip.x}%`,
-            top: `${pip.y}%`,
-            transform: `translate(-50%, -50%) rotate(${pip.rotate ?? 0}deg) scale(${pip.scale ?? 1})`
-          }"
-        >
-          {{ suitData.symbol }}
-        </span>
       </div>
     </div>
   </div>
@@ -202,11 +204,10 @@ const pips = computed(() => pipLayouts[props.rank] ?? [])
   aspect-ratio: 5 / 7;
   border-radius: 18px;
   user-select: none;
-  transform-style: preserve-3d;
+  perspective: 1000px;
   transition:
-    transform 160ms ease,
-    box-shadow 160ms ease,
-    translate 160ms ease;
+    translate 160ms ease,
+    filter 160ms ease;
 }
 
 .playing-card.selected {
@@ -225,12 +226,25 @@ const pips = computed(() => pipLayouts[props.rank] ?? [])
   width: 172px;
 }
 
-.card-front,
-.card-back {
+.card-inner {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform-style: preserve-3d;
+  transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.playing-card.is-face-down .card-inner {
+  transform: rotateY(180deg);
+}
+
+.card-face {
   position: absolute;
   inset: 0;
   overflow: hidden;
   border-radius: inherit;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 .card-front {
@@ -258,6 +272,7 @@ const pips = computed(() => pipLayouts[props.rank] ?? [])
 .corner-bottom {
   right: 10%;
   bottom: 9%;
+  transform: rotate(180deg);
 }
 
 .corner-rank {
@@ -304,20 +319,10 @@ const pips = computed(() => pipLayouts[props.rank] ?? [])
   transform: translateX(-0.05em);
 }
 
-.figure-suit {
-  position: absolute;
-  bottom: 14%;
-  right: 16%;
-  font-size: 1.8em;
-}
-
 .card-back {
+  transform: rotateY(180deg);
   background: var(--color-primary-500);
   border: 5px solid white;
-
-  & .iconify {
-    color: white !important;
-  }
 }
 
 .back-pattern {
@@ -329,16 +334,15 @@ const pips = computed(() => pipLayouts[props.rank] ?? [])
 
 .back-center {
   position: absolute;
-  inset: 22%;
+  inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 20px;  
+  padding: 20%;
 }
 
-.back-logo {
-  color: white;
-  font-size: 1.15em;
-  font-weight: 950;
-  letter-spacing: 0.04em;
+.back-logo-image {
+  width: 30em;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

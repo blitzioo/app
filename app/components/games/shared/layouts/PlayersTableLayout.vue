@@ -50,41 +50,36 @@ import type { GameSessionPlayer } from '~/types/games'
 
 type SeatPosition = 'bottom' | 'top' | 'left' | 'right'
 
-const {t} = useI18n()
+const { t } = useI18n()
+
 const {
   username: selfUsername,
   id: selfPlayerId
 } = useAuth()
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   players: GameSessionPlayer[]
   currentPlayerIdx: number
   disconnectedPlayerIds?: string[]
-}>()
+}>(), {
+  disconnectedPlayerIds: () => []
+})
 
 const disconnectedPlayerIdsSet = computed(() => {
-  return new Set(props.disconnectedPlayerIds ?? [])
+  return new Set(props.disconnectedPlayerIds)
 })
 
 const selfIdx = computed(() => {
-  if (!props.players.length) {
-    return -1
-  }
+  if (!props.players.length) return -1
 
   if (selfPlayerId.value) {
     const idx = props.players.findIndex(player => player.id === selfPlayerId.value)
-
-    if (idx !== -1) {
-      return idx
-    }
+    if (idx !== -1) return idx
   }
 
   if (selfUsername.value) {
     const idx = props.players.findIndex(player => player.username === selfUsername.value)
-
-    if (idx !== -1) {
-      return idx
-    }
+    if (idx !== -1) return idx
   }
 
   return 0
@@ -97,9 +92,7 @@ const orderedPlayers = computed(() => {
     isDisconnected: disconnectedPlayerIdsSet.value.has(player.id)
   }))
 
-  if (selfIdx.value === -1) {
-    return []
-  }
+  if (selfIdx.value === -1) return []
 
   return [
     ...players.slice(selfIdx.value),
@@ -108,18 +101,9 @@ const orderedPlayers = computed(() => {
 })
 
 const getPositions = (count: number): SeatPosition[] => {
-  if (count <= 1) {
-    return ['bottom']
-  }
-
-  if (count === 2) {
-    return ['bottom', 'top']
-  }
-
-  if (count === 3) {
-    return ['bottom', 'right', 'left']
-  }
-
+  if (count <= 1) return ['bottom']
+  if (count === 2) return ['bottom', 'top']
+  if (count === 3) return ['bottom', 'right', 'left']
   return ['bottom', 'right', 'top', 'left']
 }
 

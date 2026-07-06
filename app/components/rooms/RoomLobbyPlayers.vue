@@ -23,7 +23,7 @@
                 class="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-warning-400 text-neutral-950 ring-2 ring-neutral-950"
             >
                 <UIcon
-                name="i-lucide-crown"
+                name="i-material-symbols-crown-outline-rounded"
                 class="size-3.5"
                 />
             </div>
@@ -34,15 +34,6 @@
                     {{ player.username }}
                 </p>
             </div>
-
-            <!-- <UBadge
-            v-if="player.isReady"
-            color="success"
-            variant="soft"
-            class="rounded-full"
-            >
-            Prêt
-            </UBadge> -->
         </div>
 
         <div

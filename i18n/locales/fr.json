@@ -34,16 +34,6 @@
       "roomCreate": {
         "common": "Impossible de créer la salle."
       }
-    },
-    "games": {
-      "ninetySeven": {
-        "title": "Le 97",
-        "description": "Le jeu de geudin où faut savoir calculer. Attention à ne pas dépasser 97."
-      },
-      "spotRush": {
-        "title": "Dobble hess",
-        "description": "Comme le dobble, faut trouver les différences le plus vite possible."
-      }
     }
   },
   "room": {
@@ -58,6 +48,12 @@
       "qrcodeTitle": "QR Code",
       "copy": "Code de la salle",
       "copied": "Code copié"
+    },
+    "explanations": {
+      "title": "Comment jouer",
+      "backBtn": "Retour",
+      "finishBtn": "Finir",
+      "nextBtn": "Suivant"
     }
   },
   "games": {
@@ -82,7 +78,7 @@
       },
       "totalGuess": {
         "title": "Ça fait combien ?",
-        "subtitle": "Si tu te trompes, tu bois la différence.",
+        "subtitle": "Si tu te trompes, tu prends la différence.",
         "confirm": "Valider"
       },
       "jackChoice": {

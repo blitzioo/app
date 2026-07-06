@@ -21,12 +21,12 @@
             />
 
             <UDrawer
-            v-model:open="isQrDrawerOpen"
-            :handle="false"
-            :ui="{
-                overlay: 'bg-neutral-950/80 backdrop-blur-sm',
-                content: 'bg-transparent ring-0'
-            }"
+                v-model:open="isQrDrawerOpen"
+                :handle="false"
+                :ui="{
+                    overlay: 'bg-neutral-950/80 backdrop-blur-sm',
+                    content: 'bg-transparent ring-0'
+                }"
             >
             <UButton
                 icon="i-mdi-qrcode"
@@ -55,11 +55,7 @@
 
                 <div class="mt-7 grid place-items-center">
                     <div class="rounded-[32px] bg-white p-5 shadow-xl">
-                    <img
-                        :src="`https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${code}`"
-                        :alt="`QR Code salle ${code}`"
-                        class="size-60"
-                    >
+                        <qrcode-vue :value="code" :size="300" level="H" render-as="svg" />
                     </div>
 
                     <p class="mt-5 text-xs font-bold uppercase tracking-wider text-neutral-500">
@@ -79,6 +75,8 @@
 </template>
 
 <script lang="ts" setup>
+import QrcodeVue from 'qrcode.vue'
+
 const toast = useToast()
 const {t} = useI18n()
 

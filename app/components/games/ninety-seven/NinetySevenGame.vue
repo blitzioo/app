@@ -6,10 +6,11 @@
     @acknowledge="turnResultData = null"
   />
 
-  <NinetySevenGameEnd
+  <GameResultModal
     v-model:open="isGameEndOpen"
-    :result="gameResult"
-    @home="goHome"
+    title="Mais nannnn il a perdu"
+    :description="`${gameResult?.loser?.username} a perdu le 97`"
+    :player-name="gameResult?.loser?.username"
   />
 
   <NinetySevenTotalGuess
@@ -37,7 +38,8 @@
       @on-drop="startDropFlow"
     />
 
-    <NinetySevenPlayersLayout
+    <PlayersLayout
+      variant="table"
       :players="publicData.players ?? []"
       :current-player-idx="publicData.currentPlayerIdx ?? 0"
     />
@@ -56,6 +58,7 @@ import {
   NINETY_SEVEN_MAX_GUESS,
   NINETY_SEVEN_MIN_GUESS,
   type NinetySevenAction,
+  type NinetySevenGameResult,
   type NinetySevenPrivateData,
   type NinetySevenPublicData,
   type NinetySevenTurnResult,
@@ -69,20 +72,13 @@ import { useAuth } from '~/composables/core/useAuth.js'
 import CardPiles from '../shared/cards/CardPiles.vue'
 import type { GamePropsData, GameSessionPlayer } from '../../../types/games.js'
 import NinetySevenTurnResultOverlay from './NinetySevenTurnResultOverlay.vue'
-import NinetySevenGameEnd from './NinetySevenGameEnd.vue'
 import NinetySevenTotalGuess from './NinetySevenTotalGuess.vue'
 import NinetySevenJackChoice from './NinetySevenJackChoice.vue'
-import NinetySevenPlayersLayout from './NinetySevenPlayersLayout.vue'
 import NinetySevenPlayerHUD from './NinetySevenPlayerHUD.vue'
+import PlayersLayout from '../shared/layouts/PlayersLayout.vue'
+import GameResultModal from '../shared/GameResultModal.vue'
 
 type JackChoice = -10 | 10
-
-type NinetySeventyGameResult = {
-  loser: {
-    id: string
-    username: string
-  }
-}
 
 const props = defineProps<GamePropsData<
   NinetySevenPrivateData,
@@ -90,8 +86,10 @@ const props = defineProps<GamePropsData<
 >>()
 
 const router = useRouter()
-const { sendAction } = useGameSocket<NinetySevenAction>()
 const auth = useAuth()
+const { sendAction } = useGameSocket<
+  NinetySevenAction
+>()
 
 const selfPlayerId = computed(() => {
   return auth.id?.value ?? null
@@ -105,7 +103,7 @@ const cardPilesRef = ref<InstanceType<typeof CardPiles> | null>(null)
 
 const publicData = ref<(NinetySevenPublicData & {
   isFinished?: boolean
-  gameResult?: NinetySeventyGameResult | null
+  gameResult?: NinetySevenGameResult | null
 }) | null>(null)
 
 const handCards = ref<Card[]>([])
@@ -193,10 +191,6 @@ const resetCurrentAction = () => {
   isJackChoiceOpen.value = false
 }
 
-const goHome = async () => {
-  await router.push('/')
-}
-
 const showTurnResult = (result: NinetySevenTurnResult) => {
   if (result.id === lastShownTurnResultId.value) {
     return
@@ -218,7 +212,7 @@ const showTurnResult = (result: NinetySevenTurnResult) => {
 
 const handlePublicData = (data: (NinetySevenPublicData & {
   isFinished?: boolean
-  gameResult?: NinetySeventyGameResult | null
+  gameResult?: NinetySevenGameResult | null
 }) | null) => {
   if (!data) {
     return

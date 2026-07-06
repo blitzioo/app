@@ -2,7 +2,6 @@
   <div class="w-full max-w-md rounded-[32px] border border-white/10 bg-neutral-900/90 p-6 shadow-2xl backdrop-blur">
     <div class="flex flex-col items-center">
       <div class="sk h-8 w-36 rounded-xl bg-primary-500/30" />
-      <div class="sk mt-3 h-7 w-24 rounded-full bg-primary-500/20" />
     </div>
 
     <div class="mt-6 rounded-3xl border border-white/10 bg-neutral-950/60 p-4">
@@ -21,7 +20,7 @@
 
       <div class="grid gap-2">
         <div
-          v-for="idx in 3"
+          v-for="idx in 2"
           :key="idx"
           class="flex items-center gap-3 rounded-2xl border border-white/10 bg-neutral-950/50 p-3"
         >
@@ -51,7 +50,6 @@
     </div>
 
     <div class="sk mt-6 h-13 w-full rounded-2xl bg-primary-500/25" />
-    <div class="sk mt-3 h-13 w-full rounded-2xl bg-primary-500/15" />
   </div>
 </template>
 

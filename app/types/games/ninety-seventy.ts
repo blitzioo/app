@@ -9,17 +9,15 @@ export interface NinetySevenTurnResult {
   penalty: number
   isCorrect: boolean
 }
-
-export type NinetySevenTurnResultOverlayData = {
+export 
+  interface NinetySevenTurnResultOverlayData 
+  extends Omit<NinetySevenTurnResult, "id"|"playedPlayer">
+{
   isSelf: boolean
   playerName: string
-  announcedTotal: number
-  realTotal: number
-  penalty: number
-  isCorrect: boolean
 }
 
-export type NinetySevenPenaltyData = {
+export interface NinetySevenPenaltyData {
   isSelf: boolean
   playerName: string
   penalty?: number

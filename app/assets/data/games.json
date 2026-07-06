@@ -1,0 +1,14 @@
+[
+    {
+        "id": "ninety-seven",
+        "title": "Le 97",
+        "description": "Le jeu de geudin. Attention à ne pas dépasser 97.",
+        "image": "/images/games/ninety-seven/cover.png"
+    },
+    {
+        "id": "balloon",
+        "title": "Ballon2Zipette",
+        "description": "Gonfle ou passe le ballon, attention à ne pas le faire exploser sinon c'est cuit.",
+        "image": "/images/games/balloon/cover.png"
+    }
+]

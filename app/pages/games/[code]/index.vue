@@ -93,12 +93,14 @@
 
 <script setup lang="ts">
 import type { Component } from 'vue'
+import BalloonGame from '~/components/games/balloon/BalloonGame.vue'
 import NinetySevenGame from '~/components/games/ninety-seven/NinetySevenGame.vue'
 import { useSocket } from '~/composables/core/useSocket'
 import { GameEnum, type GameData } from '~/types/games'
 
 const gameComponents: Record<GameEnum, Component> = {
-  [GameEnum.NINETY_SEVEN]: NinetySevenGame
+  [GameEnum.NINETY_SEVEN]: NinetySevenGame,
+  [GameEnum.BALLOON]: BalloonGame
 }
 
 const {t} = useI18n()
@@ -133,8 +135,7 @@ const isLoading = computed(() => {
     !isConnected.value ||
     !currentGameId.value ||
     !gameComponent.value ||
-    !publicData.value ||
-    !privateData.value
+    !publicData.value
   )
 })
 

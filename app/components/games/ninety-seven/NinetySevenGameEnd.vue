@@ -46,16 +46,11 @@
 </template>
 
 <script setup lang="ts">
-type GameResult = {
-  loser: {
-    id: string
-    username: string
-  }
-}
+import type { NinetySevenGameResult } from '~/types/games/ninety-seventy';
 
 const props = defineProps<{
   open: boolean
-  result: GameResult | null
+  result: NinetySevenGameResult | null
 }>()
 
 const emit = defineEmits<{

@@ -6,7 +6,7 @@
 
     <div class="relative w-full max-w-md">
       <img
-        src="~/assets/images/logo/large.png"
+        src="/images/logo/large.png"
         alt="Blitzio"
         class="mx-auto mb-7 h-28 w-auto object-contain drop-shadow-2xl sm:h-32"
       />

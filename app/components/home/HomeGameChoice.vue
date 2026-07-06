@@ -14,7 +14,7 @@
     color="primary"
     icon="i-lucide-plus"
     :disabled="isBusy"
-    class="h-14 rounded-2xl text-neutral-300 font-black text-white shadow-lg shadow-primary-950/30 transition hover:bg-primary-800 active:scale-[0.98]"
+    class="h-14 rounded-2xl text-neutral-300 font-black text-white shadow-lg shadow-primary-950/30 transition"
   >
     {{ t('home.createBtn') }}
   </UButton>
@@ -48,26 +48,20 @@
             @click="createGameRoom(game.id)"
           >
             <div
+              v-if="game.image"  
               class="grid h-20 w-20 shrink-0 place-items-center rounded-[24px] border border-white/10 bg-neutral-950/50"
             >
               <img
-                v-if="game.image"
                 :src="game.image"
-                :alt="t(game.name)"
-                class="h-14 w-14 object-contain drop-shadow-xl transition group-hover:scale-110"
-              />
-
-              <UIcon
-                v-else
-                name="i-lucide-gamepad-2"
-                class="h-9 w-9 text-primary-300"
+                :alt="game.id"
+                class="h-14 w-14 object-contain drop-shadow-xl transition"
               />
             </div>
 
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-2">
                 <h3 class="truncate text-xl font-black text-white">
-                  {{ t(game.name) }}
+                  {{ game.title }}
                 </h3>
 
                 <span
@@ -79,7 +73,7 @@
               </div>
 
               <p class="mt-1 line-clamp-2 text-sm font-medium leading-relaxed text-neutral-300">
-                {{ t(game.description) }}
+                {{ game.description }}
               </p>
             </div>
 
@@ -96,7 +90,7 @@
 
 <script lang="ts" setup>
 import { GameEnum } from '~/types/games'
-import ninetySevenCover from '~/assets/images/games/ninety-seven/cover.png'
+import gamesFile from "~/assets/data/games.json"
 
 const { createRoom } = useRooms()
 const router = useRouter()
@@ -105,21 +99,13 @@ const toast = useToast()
 
 type GameCard = {
   id: GameEnum
-  name: string
-  description: string
+  title: string;
+  description: string;
   image?: string
   disabled?: boolean
 }
 
-const games: GameCard[] = [
-  {
-    id: GameEnum.NINETY_SEVEN,
-    name: 'home.games.ninetySeven.title',
-    description: 'home.games.ninetySeven.description',
-    image: ninetySevenCover
-  }
-]
-
+const games = gamesFile as GameCard[];
 const emit = defineEmits<{
   onGameId: [gameId: GameEnum | null]
 }>()

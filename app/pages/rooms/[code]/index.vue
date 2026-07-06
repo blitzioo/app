@@ -13,17 +13,40 @@
 
       <div
         v-else
-        class="w-full max-w-md rounded-[32px] border border-white/10 bg-neutral-900/90 p-6 text-center shadow-2xl backdrop-blur"
+        class="relative w-full max-w-md rounded-[32px] border border-white/10 bg-neutral-900/90 p-6 text-center shadow-2xl backdrop-blur"
       >
-        <h1 class="mt-5 text-2xl font-black text-neutral-50">
-          {{ t('room.title', {code}) }}
-        </h1>
+        <RoomGameTutorial
+          v-model:open="isTutorialOpen"
+          :game-id="room!.gameId"
+        />
 
+        <div class="relative pt-10">
+          <UButton
+            color="neutral"
+            variant="ghost"
+            size="lg"
+            class="absolute right-0 top-0 rounded-full text-neutral-400"
+            @click="isTutorialOpen = true"
+          >
+            {{ t('room.explanations.title') }}
+            <template #trailing>
+              <UIcon 
+                name="i-lucide-circle-help" 
+                class="mr-2 text-lg" 
+              />
+            </template>
+
+          </UButton>
+
+          <h1 class="mt-5 text-2xl font-black text-neutral-50">
+            {{ t('room.title', { code: `#${code}` }) }}
+          </h1>
+        </div>
         <RoomLobbyCode :code="code" />
 
         <RoomLobbyPlayers :players="players" />
 
-        <RoomLobbyFooter 
+        <RoomLobbyFooter
           :code="code"
           :is-loading="isLoading"
           :status="room?.status"
@@ -35,6 +58,7 @@
 </template>
 
 <script setup lang="ts">
+import RoomGameTutorial from '~/components/rooms/RoomGameTutorial.vue';
 import RoomLobbyCode from '~/components/rooms/RoomLobbyCode.vue';
 import RoomLobbyFooter from '~/components/rooms/RoomLobbyFooter.vue';
 import RoomLobbyPlayers from '~/components/rooms/RoomLobbyPlayers.vue';
@@ -64,6 +88,8 @@ const {
 } = useRooms()
 
 const { socket, connect, disconnect } = useSocket()
+
+const isTutorialOpen = ref(false);
 
 const isLoading = ref(false)
 const isGoingToGame = ref(false)
