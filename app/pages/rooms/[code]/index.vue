@@ -17,7 +17,8 @@
       >
         <RoomGameTutorial
           v-model:open="isTutorialOpen"
-          :game-id="room!.gameId"
+          :game-rules="room?.game?.rules ?? []"
+          :game-id="room?.game?.id"
         />
 
         <div class="relative pt-10">
@@ -46,8 +47,15 @@
 
         <RoomLobbyPlayers :players="players" />
 
+        <RoomGameOptions
+          v-if="gameOptions.length && isHost"
+          v-model="selectedOptions"
+          :options="gameOptions" 
+        />
+
         <RoomLobbyFooter
           :code="code"
+          :selected-options="selectedOptions"
           :is-loading="isLoading"
           :status="room?.status"
           :players="players"
@@ -58,6 +66,7 @@
 </template>
 
 <script setup lang="ts">
+import RoomGameOptions from '~/components/rooms/RoomGameOptions.vue';
 import RoomGameTutorial from '~/components/rooms/RoomGameTutorial.vue';
 import RoomLobbyCode from '~/components/rooms/RoomLobbyCode.vue';
 import RoomLobbyFooter from '~/components/rooms/RoomLobbyFooter.vue';
@@ -65,6 +74,7 @@ import RoomLobbyPlayers from '~/components/rooms/RoomLobbyPlayers.vue';
 import RoomLobbySkeleton from '~/components/rooms/RoomLobbySkeleton.vue'
 import { useAuth } from '~/composables/core/useAuth'
 import { useSocket } from '~/composables/core/useSocket'
+import type { GameOptionValue } from '~/types/games';
 import { RoomStatus, type Room, type RoomPlayer } from '~/types/rooms'
 
 interface RoomPlayerEvent {
@@ -80,6 +90,8 @@ const { t } = useI18n()
 const code = String(route.params.code ?? '').toUpperCase()
 
 const { id } = useAuth()
+const selectedOptions = ref<Record<string, GameOptionValue>>({});
+
 const {
   getRoom,
   currentRoom,
@@ -103,6 +115,15 @@ const selfPlayerId = computed(() => id.value ?? null)
 const isInitialLoading = computed(() => {
   return !hasLoadedRoom.value
 })
+
+const isHost = computed(() => {
+  return players.value.some(player => {
+    return player.id === selfPlayerId.value && player.isHost
+  })
+})
+const gameOptions = computed(() => 
+  room.value?.game?.options ?? []
+);
 
 const isInRoom = computed(() => {
   return players.value.some(player => player.id === selfPlayerId.value)

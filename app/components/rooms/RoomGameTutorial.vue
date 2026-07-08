@@ -76,18 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import type { GameEnum } from '~/types/games'
-import gameRulesFile from "~/assets/data/game-rules.json";
-
-interface TutorialStep {
-  image?: string
-  title?: string
-  description?: string
-}
-const gameRules = gameRulesFile as Record<
-  GameEnum,
-  Array<TutorialStep>
->;
+import type { GameEnum, GameRule } from '~/types/games'
 
 const {t} = useI18n()
 
@@ -96,16 +85,15 @@ const open = defineModel<boolean>('open', {
 })
 
 const props = defineProps<{
-  gameId: GameEnum;
+  gameId?: GameEnum;
+  gameRules: GameRule[];
 }>()
 
-const steps = computed<TutorialStep[]>(() => {
-  const gameId = props.gameId;
-  const rules = gameRules[gameId];
-  if(!rules) return [];
+const steps = computed<GameRule[]>(() => {
+  const rules = props.gameRules;
   return rules.map(r => ({
     ...r,
-    ...r.image && {image: `/images/games/tutorials/${gameId}/${r.image}`}
+    ...r.image && {image: `/images/games/tutorials/${props.gameId}/${r.image}`}
   }));
 })
 
@@ -128,11 +116,5 @@ const next = () => {
   open.value = false
   currentStep.value = 0
   emit('finished')
-}
-
-const previous = () => {
-  if (currentStep.value > 0) {
-    currentStep.value--
-  }
 }
 </script>

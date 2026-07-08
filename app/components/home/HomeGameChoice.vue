@@ -7,17 +7,18 @@
       content: 'bg-transparent ring-0'
     }"
   >
-  <UButton
-    type="button"
-    block
-    size="xl"
-    color="primary"
-    icon="i-lucide-plus"
-    :disabled="isBusy"
-    class="h-14 rounded-2xl text-neutral-300 font-black text-white shadow-lg shadow-primary-950/30 transition"
-  >
-    {{ t('home.createBtn') }}
-  </UButton>
+    <UButton
+      type="button"
+      block
+      size="xl"
+      color="primary"
+      icon="i-lucide-plus"
+      :loading="loadingGames"
+      :disabled="isBusy"
+      class="h-14 rounded-2xl text-neutral-300 font-black text-white shadow-lg shadow-primary-950/30 transition"
+    >
+      {{ t('home.createBtn') }}
+    </UButton>
 
     <template #content>
       <div
@@ -38,53 +39,62 @@
         </div>
 
         <div class="mt-7 grid gap-4">
+          <template v-if="loadingGames">
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="flex w-full items-center gap-4 rounded-[28px] border border-white/10 bg-neutral-800/90 p-4"
+            >
+              <USkeleton class="h-20 w-20 rounded-[24px]" />
+
+              <div class="flex-1 space-y-3">
+                <USkeleton class="h-6 w-40" />
+                <USkeleton class="h-4 w-full" />
+                <USkeleton class="h-4 w-3/4" />
+              </div>
+            </div>
+          </template>
+
           <button
             v-for="game in games"
+            v-else
             :key="game.id"
             type="button"
             class="group flex w-full items-center gap-4 rounded-[28px] border border-white/10 bg-neutral-800/90 p-4 text-left shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:border-primary-400/50 hover:bg-neutral-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="isBusy || game.disabled"
+            :disabled="isBusy || loadingGameId === game.id"
             :class="loadingGameId === game.id ? 'pointer-events-none opacity-60' : ''"
             @click="onGameClick(game)"
           >
             <div
               class="grid h-20 w-20 shrink-0 place-items-center rounded-[24px] border border-white/10 transition"
               :style="{
-                backgroundColor: game.backgroundColor ?? 'rgba(7, 24, 36, 0.5)'
+                backgroundColor: game.backgroundColor
               }"
             >
               <UIcon
-                :name="game.icon ?? 'i-lucide-gamepad-2'"
+                :name="game.icon"
                 class="h-11 w-11 transition group-hover:scale-110"
                 :style="{
-                  color: game.color ?? 'var(--color-primary-300)'
+                  color: game.color
                 }"
               />
             </div>
 
             <div class="min-w-0 flex-1">
-              <div class="flex items-center gap-2">
-                <h3 class="truncate text-xl font-black text-white">
-                  {{ game.title }}
-                </h3>
-
-                <span
-                  v-if="game.disabled"
-                  class="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-neutral-400"
-                >
-                  Bientôt
-                </span>
-              </div>
+              <h3 class="truncate text-xl font-black text-white">
+                {{ game.title }}
+              </h3>
 
               <p class="mt-1 line-clamp-2 text-sm font-medium leading-relaxed text-neutral-300">
                 {{ game.description }}
               </p>
             </div>
 
-            <!-- <UIcon
-              name="i-lucide-chevron-right"
-              class="h-6 w-6 shrink-0 text-neutral-500 transition group-hover:translate-x-1 group-hover:text-primary-300"
-            /> -->
+            <UIcon
+              v-if="loadingGameId === game.id"
+              name="i-lucide-loader-circle"
+              class="h-6 w-6 animate-spin text-primary-300"
+            />
           </button>
         </div>
       </div>
@@ -93,35 +103,20 @@
 </template>
 
 <script lang="ts" setup>
+import type { Game } from '~/types/games'
 import { GameEnum } from '~/types/games'
-import gamesFile from "~/assets/data/games.json"
-import { ref, toRefs } from 'vue'
+import { ref, toRefs, watch } from 'vue'
 import { useRooms } from '~/composables/useRooms'
+import { useGames } from '~/composables/useGames'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
 const { createRoom } = useRooms()
+const { games, getGames } = useGames()
+
 const router = useRouter()
 const { t } = useI18n()
 const toast = useToast()
-
-type GameCard = {
-  id: GameEnum
-  title: string;
-  icon: string;
-  
-  backgroundColor: string;
-  color: string;
-
-  description: string;
-  disabled?: boolean;
-}
-
-const games = gamesFile as GameCard[];
-
-const emit = defineEmits<{
-  onGameId: [gameId: GameEnum | null]
-}>()
 
 const props = defineProps<{
   isBusy: boolean
@@ -129,25 +124,52 @@ const props = defineProps<{
 
 const { isBusy } = toRefs(props)
 
-const loadingGameId = ref<GameEnum | null>(null)
-const isCreateDrawerOpen = ref(false)
-const isOptionsDrawerOpen = ref(false)
-const pendingGame = ref<GameCard | null>(null)
+const emit = defineEmits<{
+  onGameId: [gameId: GameEnum | null]
+}>()
 
-const onGameClick = (game: GameCard) => {
-  if (isBusy.value || game.disabled) {
+const loadingGames = ref(false)
+const loadingGameId = ref<GameEnum | null>(null)
+
+const isCreateDrawerOpen = ref(false)
+
+const loadGames = async () => {
+  if (games.value.length > 0 || loadingGames.value) {
     return
   }
-  createGameRoom(game.id)
+
+  try {
+    loadingGames.value = true
+    await getGames()
+  } catch (error) {
+    toast.add({
+      title: 'Impossible de charger les jeux',
+      description: error instanceof Error
+        ? error.message
+        : 'Réessaie dans quelques secondes.',
+      icon: 'i-lucide-triangle-alert',
+      color: 'error'
+    })
+  } finally {
+    loadingGames.value = false
+  }
 }
 
-const createGameRoom = async (
-  gameId: GameEnum
-) => {
-  if (isBusy.value) {
+watch(isCreateDrawerOpen, (open) => {
+  if (open) {
+    loadGames()
+  }
+})
+
+const onGameClick = (game: Game) => {
+  if (isBusy.value || loadingGameId.value) {
     return
   }
 
+  createGameRoom(game.id as GameEnum)
+}
+
+const createGameRoom = async (gameId: GameEnum) => {
   try {
     loadingGameId.value = gameId
     emit('onGameId', gameId)
@@ -155,14 +177,14 @@ const createGameRoom = async (
     const room = await createRoom(gameId)
 
     isCreateDrawerOpen.value = false
-    isOptionsDrawerOpen.value = false
-    pendingGame.value = null
 
     await router.push(`/rooms/${room.code}`)
   } catch (error) {
     toast.add({
       title: t('home.errors.roomCreate.common'),
-      description: error instanceof Error ? error.message : 'Réessaie dans quelques secondes.',
+      description: error instanceof Error
+        ? error.message
+        : 'Réessaie dans quelques secondes.',
       icon: 'i-lucide-triangle-alert',
       color: 'error'
     })

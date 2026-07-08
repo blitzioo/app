@@ -159,11 +159,6 @@ onBeforeUnmount(() => {
       </g>
 
       <path
-        class="hose-shadow"
-        d="M 158 255 C 186 292 251 294 284 244"
-      />
-
-      <path
         class="hose-line"
         d="M 158 255 C 186 292 251 294 284 244"
       />

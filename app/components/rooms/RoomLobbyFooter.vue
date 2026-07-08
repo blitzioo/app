@@ -46,9 +46,10 @@ const p = defineProps<{
     code: string;
     status?: RoomStatus;
     isLoading: boolean;
+    selectedOptions: Record<string, unknown>;
     players: RoomPlayer[];
 }>();
-const {players} = toRefs(p);
+const {players, selectedOptions} = toRefs(p);
 
 const isStarting = ref(false)
 const isLeaving = ref(false)
@@ -66,7 +67,9 @@ const start = async () => {
 
   try {
     isStarting.value = true
-    socket.emit("room:start");
+    socket.emit("room:start", {
+      options: selectedOptions.value
+    });
   } catch (error) {
     toast.add({
       title: 'Impossible de lancer la partie',

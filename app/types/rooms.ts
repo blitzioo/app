@@ -1,4 +1,4 @@
-import type { GameEnum } from "./games"
+import type { Game, GameEnum } from "./games"
 
 export enum RoomStatus {
   WAITING = "waiting",
@@ -17,6 +17,7 @@ export interface Room {
   code: string
   hostId: string
   gameId: GameEnum
+  game: Game;
   status: RoomStatus
   players: RoomPlayer[]
   createdAt: string;

@@ -16,12 +16,11 @@ export const useRooms = () => {
   }
 
   const createRoom = async (
-    gameId: string,
-    options?: Record<string, unknown>
+    gameId: string
   ) => {
     const res = await api<{ room: Room }>('/rooms', {
       method: 'POST',
-      body: { gameId, options }
+      body: { gameId }
     })
 
     currentRoom.value = res.room
