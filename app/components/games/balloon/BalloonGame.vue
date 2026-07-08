@@ -74,7 +74,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { GamePropsData } from '~/types/games.js'
+import type { GamePropsData } from '../../../types/games.js'
 import BalloonPressure from './BalloonPressure.vue'
 
 import type {
