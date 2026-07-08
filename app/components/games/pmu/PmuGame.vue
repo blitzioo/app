@@ -55,13 +55,13 @@
 
 <script setup lang="ts">
 import type { CardSuit } from '~/types/cards'
-import type { GamePropsData } from '~/types/games'
+import type { GamePropsData } from '../../../types/games'
 import {
   PMU_BET_DEFAULT,
   type PmuAction,
   type PmuPrivateData,
   type PmuPublicData
-} from '~/types/games/pmu'
+} from '../../../types/games/pmu'
 
 import { useAuth } from '~/composables/core/useAuth'
 

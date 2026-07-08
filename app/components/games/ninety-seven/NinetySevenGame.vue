@@ -63,7 +63,7 @@ import {
   type NinetySevenPublicData,
   type NinetySevenTurnResult,
   type NinetySevenTurnResultOverlayData
-} from '~/types/games/ninety-seventy.js'
+} from '../../../types/games/ninety-seventy.js'
 
 import type { Card } from '~/types/cards.js'
 
