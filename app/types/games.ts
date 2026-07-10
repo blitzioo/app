@@ -12,6 +12,7 @@ export type GameSessionPlayer = {
 export interface GamePropsData<PrivateData, PublicData> {
   privateData: PrivateData|null;
   publicData: PublicData|null;
+  disconnectedPlayerIds: string[];
 }
 
 export type GameData = Record<string, unknown>;

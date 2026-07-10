@@ -87,6 +87,7 @@
       :key="currentGameId"
       :private-data="privateData"
       :public-data="publicData"
+      :disconnectedPlayerIds="disconnectedPlayerIds"
     />
   </KeepAlive>
 </template>
@@ -115,6 +116,8 @@ const currentGameId = ref<GameEnum | null>(null)
 
 const publicData = shallowRef<GameData | null>(null)
 const privateData = shallowRef<GameData | null>(null)
+  
+const disconnectedPlayerIds = ref<string[]>([]);
 
 const errorMessage = ref<boolean>(false);
 
@@ -149,7 +152,6 @@ const onDisconnect = () => {
   isConnected.value = false
 }
 
-// TODO: manage when a player is leaving
 const onSessionError = ({error}: {error: string}) => {
   errorMessage.value = true;
   console.error(error);
@@ -161,6 +163,14 @@ const onSessionInfos = ({ gameId }: { gameId?: GameEnum }) => {
   }
 
   currentGameId.value = gameId
+}
+
+const onPlayerJoined = (data: any) => {
+  console.log("joined", data)
+  //disconnectedPlayerIds.value.push(data)
+}
+const onPlayerLeft = (data: any) => {
+  console.log("left", data);
 }
 
 const onPublicData = (data: GameData) => {
@@ -195,6 +205,9 @@ onMounted(() => {
   socket.on('session:error', onSessionError)
   socket.on('session:infos', onSessionInfos)
 
+  socket.on("session:player-joined", onPlayerJoined);
+  socket.on("session:player-left", onPlayerLeft);
+
   socket.on('game:public-data', onPublicData)
   socket.on('game:private-data', onPrivateData)
 
@@ -207,6 +220,9 @@ onBeforeUnmount(() => {
 
   socket.off('session:error', onSessionError)
   socket.off('session:infos', onSessionInfos)
+
+  socket.off("session:player-joined", onPlayerJoined);
+  socket.off("session:player-left", onPlayerLeft);
 
   socket.off('game:public-data', onPublicData)
   socket.off('game:private-data', onPrivateData)

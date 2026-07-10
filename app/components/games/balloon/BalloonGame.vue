@@ -68,6 +68,7 @@
     <PlayersLayout
       variant="bottom-bar"
       :players="publicData.players ?? []"
+      :disconnectedPlayerIds="props.disconnectedPlayerIds"
       :current-player-idx="publicData.currentPlayerIdx ?? 0"
     />
   </div>

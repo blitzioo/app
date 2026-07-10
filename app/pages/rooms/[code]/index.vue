@@ -215,8 +215,8 @@ onMounted(async () => {
   await loadRoom()
 
   socket.on('room:started', onRoomStarted)
-  socket.on('room:player-join', onRoomPlayerJoined)
-  socket.on('room:player-left', onRoomPlayerLeft)
+  socket.on('session:player-join', onRoomPlayerJoined)
+  socket.on('session:player-left', onRoomPlayerLeft)
   socket.on("room:error", onRoomError)
 
   connect(code)
@@ -224,8 +224,8 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   socket.off('room:started', onRoomStarted)
-  socket.off('room:player-join', onRoomPlayerJoined)
-  socket.off('room:player-left', onRoomPlayerLeft)
+  socket.off('session:player-join', onRoomPlayerJoined)
+  socket.off('session:player-left', onRoomPlayerLeft)
   socket.on("room:error", onRoomError)
 
   if (!isGoingToGame.value && isInRoom.value) {

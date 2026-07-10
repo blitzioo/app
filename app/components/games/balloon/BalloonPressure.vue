@@ -21,11 +21,25 @@ const isPumping = ref(false)
 let inflateTimeout: ReturnType<typeof setTimeout> | null = null
 let pumpTimeout: ReturnType<typeof setTimeout> | null = null
 
-const pressureRatio = computed(() => {
-  return Math.min(Math.max((props.pressure ?? 0) / props.maxPressure, 0), 1)
+const pressureValue = computed(() => {
+  const value = props.pressure ?? 0
+
+  if (!Number.isFinite(value)) return 0
+
+  return Math.max(0, Math.round(value))
 })
 
-const pressurePercent = computed(() => Math.round(pressureRatio.value * 100))
+const maxPressureValue = computed(() => {
+  const value = props.maxPressure ?? 10
+
+  if (!Number.isFinite(value) || value <= 0) return 10
+
+  return value
+})
+
+const pressureRatio = computed(() => {
+  return Math.min(Math.max(pressureValue.value / maxPressureValue.value, 0), 1)
+})
 
 const balloonScale = computed(() => {
   return 0.72 + pressureRatio.value * 0.36
@@ -35,12 +49,21 @@ const balloonLift = computed(() => {
   return pressureRatio.value * -18
 })
 
+const pressureState = computed(() => {
+  if (pressureRatio.value >= 0.78) return 'danger'
+  if (pressureRatio.value >= 0.52) return 'warning'
+
+  return 'safe'
+})
+
 const balloonStyle = computed(() => ({
   '--balloon-color': props.color,
   '--balloon-size': `${props.size}px`,
-  '--pressure-percent': pressurePercent.value.toString(),
   '--balloon-scale': balloonScale.value.toString(),
-  '--balloon-lift': `${balloonLift.value}px`
+  '--balloon-lift': `${balloonLift.value}px`,
+  '--blink-duration': `${Math.max(300, 1500 - pressureRatio.value * 1050)}ms`,
+  '--blink-opacity': `${0.08 + pressureRatio.value * 0.5}`,
+  '--meter-opacity': `${0.24 + pressureRatio.value * 0.2}`
 }))
 
 watch(
@@ -66,14 +89,14 @@ watch(
 
       pumpTimeout = setTimeout(() => {
         isPumping.value = false
-      }, 260)
+      }, 280)
     }
   }
 )
 
 watch(
   () => props.exploded,
-  (value) => {
+  value => {
     if (value) {
       isInflating.value = false
       isPumping.value = false
@@ -90,11 +113,14 @@ onBeforeUnmount(() => {
 <template>
   <div
     class="balloon-pressure"
-    :class="{
-      exploded,
-      inflating: isInflating,
-      pumping: isPumping
-    }"
+    :class="[
+      pressureState,
+      {
+        exploded,
+        inflating: isInflating,
+        pumping: isPumping
+      }
+    ]"
     :style="balloonStyle"
   >
     <svg
@@ -102,9 +128,36 @@ onBeforeUnmount(() => {
       viewBox="0 0 360 300"
       aria-hidden="true"
     >
+      <defs>
+        <filter id="balloonSoftGlow" x="-40%" y="-40%" width="180%" height="180%">
+          <feGaussianBlur stdDeviation="8" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        <filter id="meterGlow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+
+        <clipPath id="balloonClip">
+          <path
+            d="M 159 58
+               C 106 58 76 99 76 150
+               C 76 199 117 226 151 237
+               C 156 239 162 239 167 237
+               C 201 226 242 199 242 150
+               C 242 99 212 58 159 58 Z"
+          />
+        </clipPath>
+      </defs>
 
       <g class="balloon-group">
-
         <path
           class="balloon-main"
           d="M 159 58
@@ -116,30 +169,76 @@ onBeforeUnmount(() => {
         />
 
         <path
-          class="balloon-side"
-          d="M 91 143
-             C 94 93 127 65 162 63
-             C 119 86 108 143 122 194
-             C 111 185 91 169 91 143 Z"
+          class="balloon-shadow"
+          d="M 96 133
+             C 100 93 126 69 163 62
+             C 128 84 115 141 126 194
+             C 119 191 103 176 96 158
+             C 93 149 92 141 96 133 Z"
         />
 
         <ellipse
           class="balloon-shine"
           cx="194"
-          cy="102"
-          rx="22"
-          ry="34"
-          transform="rotate(-34 194 102)"
+          cy="103"
+          rx="23"
+          ry="36"
+          transform="rotate(-34 194 103)"
         />
 
         <ellipse
           class="balloon-shine-small"
-          cx="207"
-          cy="145"
+          cx="205"
+          cy="147"
           rx="8"
-          ry="11"
-          transform="rotate(-22 207 145)"
+          ry="12"
+          transform="rotate(-20 205 147)"
         />
+
+        <g clip-path="url(#balloonClip)">
+          <ellipse
+            class="balloon-inner-glow"
+            cx="159"
+            cy="165"
+            rx="56"
+            ry="48"
+          />
+
+          <g class="pressure-meter" filter="url(#meterGlow)">
+            <ellipse
+              class="pressure-meter-back"
+              cx="159"
+              cy="160"
+              rx="42"
+              ry="32"
+            />
+
+            <ellipse
+              class="pressure-meter-top"
+              cx="159"
+              cy="150"
+              rx="30"
+              ry="14"
+            />
+
+            <ellipse
+              class="pressure-meter-ring"
+              cx="159"
+              cy="160"
+              rx="42"
+              ry="32"
+            />
+
+            <text
+              x="159"
+              y="168"
+              class="pressure-meter-value"
+              text-anchor="middle"
+            >
+              {{ pressureValue }}
+            </text>
+          </g>
+        </g>
 
         <path
           class="balloon-neck"
@@ -180,13 +279,24 @@ onBeforeUnmount(() => {
           rx="9"
         />
 
+        <g class="pump-stick-wrapper">
+          <rect
+            class="pump-stick"
+            x="299"
+            y="161"
+            width="8"
+            height="50"
+            rx="4"
+          />
+        </g>
+
         <rect
-          class="pump-stick"
-          x="299"
-          y="161"
-          width="8"
-          height="50"
-          rx="4"
+          class="pump-body-cover"
+          x="275"
+          y="202"
+          width="56"
+          height="84"
+          rx="21"
         />
 
         <rect
@@ -227,8 +337,6 @@ onBeforeUnmount(() => {
       <g class="explosion-group">
         <circle class="explosion-ring" cx="159" cy="148" r="34" />
 
-        <span />
-
         <line class="burst burst-1" x1="159" y1="148" x2="159" y2="80" />
         <line class="burst burst-2" x1="159" y1="148" x2="220" y2="94" />
         <line class="burst burst-3" x1="159" y1="148" x2="244" y2="150" />
@@ -262,31 +370,6 @@ onBeforeUnmount(() => {
   overflow: visible;
 }
 
-.pressure-track,
-.pressure-fill {
-  fill: none;
-  stroke-linecap: round;
-  stroke-width: 12;
-}
-
-.pressure-track {
-  stroke: var(--color-primary-100);
-  opacity: 0.28;
-}
-
-.pressure-fill {
-  stroke: var(--color-primary-400);
-  stroke-dasharray: var(--pressure-percent) 100;
-  transition: stroke-dasharray 280ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.pressure-ticks line {
-  stroke: var(--color-primary-200);
-  stroke-width: 4;
-  stroke-linecap: round;
-  opacity: 0.65;
-}
-
 .balloon-group {
   transform-box: fill-box;
   transform-origin: 50% 78%;
@@ -296,21 +379,16 @@ onBeforeUnmount(() => {
   transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.balloon-shadow {
-  fill: rgba(7, 24, 36, 0.22);
-  transform-origin: center;
-  transform: scaleX(calc(0.75 + var(--pressure-percent) / 180));
-  opacity: 0.7;
-}
-
 .balloon-main {
-  fill: url("#none");
   fill: var(--balloon-color);
+  filter: url(#balloonSoftGlow);
+  transition:
+    filter 220ms ease,
+    opacity 220ms ease;
 }
 
-.balloon-side {
-  fill: var(--color-primary-800);
-  opacity: 0.2;
+.balloon-shadow {
+  fill: rgba(15, 33, 46, 0.16);
 }
 
 .balloon-shine {
@@ -321,6 +399,84 @@ onBeforeUnmount(() => {
   fill: rgba(255, 255, 255, 0.22);
 }
 
+.balloon-inner-glow {
+  fill: rgba(255, 255, 255, 0.08);
+}
+
+.pressure-meter {
+  opacity: 0.96;
+  transform-origin: center;
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.pressure-meter-back {
+  fill: rgba(255, 255, 255, var(--meter-opacity));
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1.5;
+}
+
+.pressure-meter-top {
+  fill: rgba(255, 255, 255, 0.14);
+}
+
+.pressure-meter-ring {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.16);
+  stroke-width: 2;
+}
+
+.pressure-meter-value {
+  fill: white;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: -0.05em;
+  dominant-baseline: middle;
+}
+
+.warning .balloon-main {
+  filter: drop-shadow(0 0 12px rgba(255, 193, 7, 0.24));
+}
+
+.warning .pressure-meter-back {
+  fill: rgba(255, 193, 7, 0.16);
+  stroke: rgba(255, 193, 7, 0.18);
+}
+
+.warning .pressure-meter-top {
+  fill: rgba(255, 255, 255, 0.18);
+}
+
+.warning .pressure-meter-ring {
+  stroke: rgba(255, 193, 7, 0.26);
+}
+
+.danger .balloon-main {
+  filter: drop-shadow(0 0 20px rgba(237, 65, 99, 0.42));
+}
+
+.danger .balloon-group {
+  animation: balloon-danger var(--blink-duration) ease-in-out infinite;
+}
+
+.danger .pressure-meter {
+  animation: meter-danger var(--blink-duration) ease-in-out infinite;
+}
+
+.danger .pressure-meter-back {
+  fill: rgba(237, 65, 99, 0.18);
+  stroke: rgba(237, 65, 99, 0.2);
+}
+
+.danger .pressure-meter-top {
+  fill: rgba(255, 255, 255, 0.16);
+}
+
+.danger .pressure-meter-ring {
+  stroke: rgba(237, 65, 99, 0.3);
+}
+
 .balloon-neck {
   fill: var(--color-primary-700);
 }
@@ -329,21 +485,11 @@ onBeforeUnmount(() => {
   fill: var(--color-primary-800);
 }
 
-.hose-shadow,
 .hose-line {
   fill: none;
-  stroke-linecap: round;
-}
-
-.hose-shadow {
-  stroke: rgba(7, 24, 36, 0.28);
-  stroke-width: 12;
-  transform: translateY(5px);
-}
-
-.hose-line {
   stroke: var(--color-neutral-50);
   stroke-width: 8;
+  stroke-linecap: round;
 }
 
 .hose-joint {
@@ -360,16 +506,24 @@ onBeforeUnmount(() => {
   fill: var(--color-neutral-50);
 }
 
-.pump-stick {
-  transition: transform 160ms ease;
-  transform-origin: top;
+.pump-stick-wrapper {
   transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.pump-stick {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
 }
 
 .pump-handle {
   transition: transform 160ms ease;
   transform-origin: center;
   transform-box: fill-box;
+}
+
+.pump-body-cover {
+  fill: #213743;
 }
 
 .pump-body {
@@ -389,11 +543,11 @@ onBeforeUnmount(() => {
 }
 
 .pumping .pump-handle {
-  transform: translateY(18px);
+  animation: pump-handle 280ms ease-out forwards;
 }
 
-.pumping .pump-stick {
-  transform: scaleY(0.58);
+.pumping .pump-stick-wrapper {
+  animation: pump-stick-disappear 280ms ease-out forwards;
 }
 
 .inflating .balloon-group {
@@ -435,9 +589,7 @@ onBeforeUnmount(() => {
   animation: balloon-explode 340ms ease-out forwards;
 }
 
-.exploded .pressure-arc,
 .exploded .hose-line,
-.exploded .hose-shadow,
 .exploded .hose-joint,
 .exploded .pump-group {
   opacity: 0.25;
@@ -459,6 +611,35 @@ onBeforeUnmount(() => {
   animation: particle 520ms ease-out forwards;
 }
 
+@keyframes pump-handle {
+  0% {
+    transform: translateY(0);
+  }
+
+  55%,
+  100% {
+    transform: translateY(24px);
+  }
+}
+
+@keyframes pump-stick-disappear {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  45% {
+    opacity: 1;
+    transform: translateY(14px);
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+    transform: translateY(24px) scaleY(0.2);
+  }
+}
+
 @keyframes balloon-pop {
   0% {
     transform:
@@ -476,6 +657,30 @@ onBeforeUnmount(() => {
     transform:
       translateY(var(--balloon-lift))
       scale(var(--balloon-scale));
+  }
+}
+
+@keyframes balloon-danger {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: calc(1 - var(--blink-opacity));
+  }
+}
+
+@keyframes meter-danger {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: calc(1 - var(--blink-opacity));
+    transform: scale(1.05);
   }
 }
 
