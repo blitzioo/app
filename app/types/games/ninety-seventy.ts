@@ -1,5 +1,6 @@
 import type { Card } from "../cards"
 import type { GameData, GameSessionPlayer } from "../games";
+import type { RoomPlayer } from "../rooms";
 
 export interface NinetySevenTurnResult {
   id: string
@@ -28,7 +29,7 @@ export interface NinetySevenPublicData extends GameData {
   currentPlayerIdx?: number;
   direction?: -1 | 1;
 
-  players?: GameSessionPlayer[];  
+  players?: RoomPlayer[];  
   lastTurnResult?: NinetySevenTurnResult;
 
   isFinished?: boolean;

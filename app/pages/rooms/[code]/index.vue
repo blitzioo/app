@@ -45,7 +45,7 @@
         </div>
         <RoomLobbyCode :code="code" />
 
-        <RoomLobbyPlayers :players="players" />
+        <RoomLobbyPlayers :host-id="room!.hostId" :players="players" />
 
         <RoomGameOptions
           v-if="gameOptions.length && isHost"
@@ -58,7 +58,7 @@
           :selected-options="selectedOptions"
           :is-loading="isLoading"
           :status="room?.status"
-          :players="players"
+          :is-host="isHost"
         />
       </div>
     </Transition>
@@ -75,12 +75,7 @@ import RoomLobbySkeleton from '~/components/rooms/RoomLobbySkeleton.vue'
 import { useAuth } from '~/composables/core/useAuth'
 import { useSocket } from '~/composables/core/useSocket'
 import type { GameOptionValue } from '~/types/games';
-import { RoomStatus, type Room, type RoomPlayer } from '~/types/rooms'
-
-interface RoomPlayerEvent {
-  players: RoomPlayer[];
-  username: string;
-}
+import { RoomStatus, type PlayerPresenceChangedEvent, type Room } from '~/types/rooms'
 
 const route = useRoute()
 const router = useRouter()
@@ -118,7 +113,7 @@ const isInitialLoading = computed(() => {
 
 const isHost = computed(() => {
   return players.value.some(player => {
-    return player.id === selfPlayerId.value && player.isHost
+    return player.id === selfPlayerId.value && player.id === room.value?.hostId
   })
 })
 const gameOptions = computed(() => 
@@ -199,12 +194,11 @@ const onRoomStarted = async () => {
   await router.push(`/games/${code}`)
 }
 
-const onRoomPlayerJoined = (payload: RoomPlayerEvent) => {
+const onPresenceChanged = (payload: PlayerPresenceChangedEvent) => {
   room.value!.players = payload.players;
-}
-
-const onRoomPlayerLeft = (payload: RoomPlayerEvent) => {
-  room.value!.players = payload.players;
+  if(payload.newHostId) {
+    room.value!.hostId = payload.newHostId;
+  }
 }
 
 const onRoomError = (error: string) => {
@@ -215,8 +209,7 @@ onMounted(async () => {
   await loadRoom()
 
   socket.on('room:started', onRoomStarted)
-  socket.on('session:player-join', onRoomPlayerJoined)
-  socket.on('session:player-left', onRoomPlayerLeft)
+  socket.on('room:presence-changed', onPresenceChanged)
   socket.on("room:error", onRoomError)
 
   connect(code)
@@ -224,8 +217,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   socket.off('room:started', onRoomStarted)
-  socket.off('session:player-join', onRoomPlayerJoined)
-  socket.off('session:player-left', onRoomPlayerLeft)
+  socket.off('room:presence-changed', onPresenceChanged)
   socket.on("room:error", onRoomError)
 
   if (!isGoingToGame.value && isInRoom.value) {

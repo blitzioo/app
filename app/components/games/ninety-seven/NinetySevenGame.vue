@@ -85,7 +85,6 @@ const props = defineProps<GamePropsData<
   NinetySevenPublicData
 >>()
 
-const router = useRouter()
 const auth = useAuth()
 const { sendAction } = useGameSocket<
   NinetySevenAction

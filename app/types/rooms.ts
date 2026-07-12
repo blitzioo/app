@@ -1,16 +1,27 @@
 import type { Game, GameEnum } from "./games"
 
+export enum PlayerStatus {
+  CONNECTED = "CONNECTED",
+  DISCONNECTED = "DISCONNECTED",
+  TIMEOUT = "TIMEOUT"
+}
 export enum RoomStatus {
   WAITING = "waiting",
   PLAYING = "playing",
   CLOSED = "closed"
 }
 
+export interface PlayerPresenceChangedEvent {
+  players: (RoomPlayer)[];
+  newHostId: string;
+}
+
 export interface RoomPlayer {
   id: string
   username: string
-  isHost: boolean
-  isReady: boolean
+  
+  connectionStatus: PlayerStatus;
+  disconnectedAt?: Date;
 }
 
 export interface Room {

@@ -19,7 +19,7 @@
             />
 
             <div
-                v-if="player.isHost"
+                v-if="player.id === hostId"
                 class="absolute -right-1 -top-1 grid size-5 place-items-center rounded-full bg-warning-400 text-neutral-950 ring-2 ring-neutral-950"
             >
                 <UIcon
@@ -53,5 +53,6 @@ const {t} = useI18n()
 
 defineProps<{
     players: RoomPlayer[];
+    hostId: string;
 }>();
 </script>

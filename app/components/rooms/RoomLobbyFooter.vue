@@ -45,20 +45,15 @@ const {
 const p = defineProps<{
     code: string;
     status?: RoomStatus;
+    isHost: boolean;
     isLoading: boolean;
     selectedOptions: Record<string, unknown>;
     players: RoomPlayer[];
 }>();
-const {players, selectedOptions} = toRefs(p);
+const {isHost, selectedOptions} = toRefs(p);
 
 const isStarting = ref(false)
 const isLeaving = ref(false)
-
-const isHost = computed(() => {
-  return players.value.some(player => {
-    return player.id === selfPlayerId.value && player.isHost
-  })
-})
 
 const start = async () => {
   if (!isHost.value || isStarting.value) {

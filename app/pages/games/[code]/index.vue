@@ -99,6 +99,16 @@ import NinetySevenGame from '~/components/games/ninety-seven/NinetySevenGame.vue
 import PmuGame from '~/components/games/pmu/PmuGame.vue'
 import { useSocket } from '~/composables/core/useSocket'
 import { GameEnum, type GameData } from '~/types/games'
+import { PlayerStatus, type PlayerPresenceChangedEvent, type RoomPlayer } from '~/types/rooms'
+
+interface PlayerTimeoutEvent {
+  players: RoomPlayer[];
+  player: {
+    id: string;
+    username: string;
+  }
+  timeoutSeconds: number;
+}
 
 const gameComponents: Record<GameEnum, Component> = {
   [GameEnum.BALLOON]: BalloonGame,
@@ -109,6 +119,7 @@ const gameComponents: Record<GameEnum, Component> = {
 const {t} = useI18n()
 const route = useRoute()
 const router = useRouter()
+const toast = useToast()
 
 const code = route.params.code as string
 
@@ -117,7 +128,15 @@ const currentGameId = ref<GameEnum | null>(null)
 const publicData = shallowRef<GameData | null>(null)
 const privateData = shallowRef<GameData | null>(null)
   
-const disconnectedPlayerIds = ref<string[]>([]);
+const players = ref<RoomPlayer[]>([]);
+
+const disconnectedPlayerIds = computed(() => {
+  return players.value
+    .filter(p => 
+      [PlayerStatus.DISCONNECTED, PlayerStatus.TIMEOUT].includes(p.connectionStatus)
+    )
+    .map(p => p.id);
+})
 
 const errorMessage = ref<boolean>(false);
 
@@ -152,7 +171,7 @@ const onDisconnect = () => {
   isConnected.value = false
 }
 
-const onSessionError = ({error}: {error: string}) => {
+const onSessionError = (error: any) => {
   errorMessage.value = true;
   console.error(error);
 }
@@ -165,12 +184,19 @@ const onSessionInfos = ({ gameId }: { gameId?: GameEnum }) => {
   currentGameId.value = gameId
 }
 
-const onPlayerJoined = (data: any) => {
-  console.log("joined", data)
-  //disconnectedPlayerIds.value.push(data)
+const onPresenceChanged = (payload: PlayerPresenceChangedEvent) => {
+  players.value = payload.players;
 }
-const onPlayerLeft = (data: any) => {
-  console.log("left", data);
+const onPlayerTimeout = (payload: PlayerTimeoutEvent) => {
+  players.value = payload.players
+
+  toast.add({
+    title: `${payload.player.username} a été déconnecté`,
+    description: `Le joueur a été exclu automatiquement après ${payload.timeoutSeconds} secondes d’absence.`,
+    icon: 'i-lucide-wifi-off',
+    color: 'warning',
+    duration: 5000
+  })
 }
 
 const onPublicData = (data: GameData) => {
@@ -205,8 +231,8 @@ onMounted(() => {
   socket.on('session:error', onSessionError)
   socket.on('session:infos', onSessionInfos)
 
-  socket.on("session:player-joined", onPlayerJoined);
-  socket.on("session:player-left", onPlayerLeft);
+  socket.on("session:presence-changed", onPresenceChanged);
+  socket.on("session:player-timeout", onPlayerTimeout);
 
   socket.on('game:public-data', onPublicData)
   socket.on('game:private-data', onPrivateData)
@@ -221,8 +247,8 @@ onBeforeUnmount(() => {
   socket.off('session:error', onSessionError)
   socket.off('session:infos', onSessionInfos)
 
-  socket.off("session:player-joined", onPlayerJoined);
-  socket.off("session:player-left", onPlayerLeft);
+  socket.off("session:presence-changed", onPresenceChanged);
+  socket.off("session:player-timeout", onPlayerTimeout);
 
   socket.off('game:public-data', onPublicData)
   socket.off('game:private-data', onPrivateData)

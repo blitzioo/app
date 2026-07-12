@@ -1,4 +1,5 @@
-import type { GameData, GameSessionPlayer } from "../games";
+import type { GameData } from "../games";
+import type { RoomPlayer } from "../rooms";
 
 export interface BalloonExplosionEvent {
     playerId: string;
@@ -14,7 +15,7 @@ export interface BalloonGiveEvent {
 
 export interface BalloonPublicData extends GameData {
     currentPlayerIdx: number;
-    players: GameSessionPlayer[];
+    players: RoomPlayer[];
     pressure: number;
     exploded: boolean;
 
